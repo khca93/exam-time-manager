@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/exam-time-manager/manifest.json">
-    <meta name="theme-color" content="#0b79d0">
+    <!-- PWA Settings -->
+    <meta name="theme-color" content="#6C63FF">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <!-- खालील ओळ PWA Manifest साठी आहे (जर तुमच्याकडे manifest.json असेल तर) -->
+    <link rel="manifest" href="manifest.json">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Time Manager</title>
-    <style>
+<style>
         :root {
             --primary-color: #6C63FF; /* Beautiful Purple */
             --secondary-color: #F50057; /* Pink/Red for alerts */
@@ -72,7 +74,7 @@
             width: 100%;
         }
 
-        /* 1. Welcome Screen Images Updated Here */
+        /* --- UPDATED IMAGES CSS --- */
         #welcome-screen {
             text-align: center;
             display: flex;
@@ -83,19 +85,21 @@
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
         }
         
-        /* Updated Logo Size: 192px */
+        /* Icon 192px (Logo Replacement) */
         .logo-img { 
             width: 192px; 
-            height: auto; 
-            max-width: 100%; /* Keeps it mobile friendly */
+            height: 192px; 
+            object-fit: contain;
             margin-bottom: 20px; 
         }
         
-        /* Updated Student Image Size: 512px */
+        /* Icon 512px (Student Replacement) */
         .student-img { 
             width: 512px; 
-            height: auto; 
-            max-width: 100%; /* Ensures it fits on mobile screens */
+            height: 512px; 
+            object-fit: contain;
+            max-width: 100%; /* Mobile safe */
+            height: auto;
             margin: 20px auto; 
             display: block; 
         }
@@ -107,7 +111,7 @@
             font-size: 1.1rem;
         }
 
-        /* 2. Setup Screen */
+        /* Setup Screen */
         .card {
             background: var(--card-bg);
             padding: 20px;
@@ -140,7 +144,7 @@
         }
         .saved-exam-item button { width: auto; font-size: 0.8rem; padding: 5px 10px; margin: 0 2px; }
 
-        /* 3. Running Screen */
+        /* Running Screen */
         #running-screen {
             background-color: #2c3e50;
             color: white;
@@ -167,7 +171,7 @@
             100% { transform: scale(1); }
         }
 
-        /* 4. Todo Screen */
+        /* Todo Screen */
         .todo-item {
             background: white;
             padding: 15px;
@@ -203,11 +207,11 @@
 
     <!-- 1. WELCOME SCREEN -->
     <div id="welcome-screen" class="screen">
-        <!-- Logo Image with updated size -->
-        <img src="Logo.png" alt="App Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3209/3209265.png'"> 
+        <!-- REPLACED Logo.png WITH icon-192.png (192px) -->
+        <img src="icon-192.png" alt="App Icon" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/128/3209/3209265.png'"> 
         
-        <!-- Student1 Image with updated size -->
-        <img src="student1.png" alt="Student Happy" class="student-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png'">
+        <!-- REPLACED student1.png WITH icon-512.png (512px) -->
+        <img src="icon-512.png" alt="App Large Icon" class="student-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png'">
         
         <h1>Exam Manager</h1>
         <p class="motivation">"Believe you can and you're halfway there."</p>
@@ -610,6 +614,12 @@
             renderTodos();
         }
 
+        // Register Service Worker (optional for full PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // navigator.serviceWorker.register('/sw.js'); // Uncomment if you have sw.js
+            });
+        }
     </script>
 	<!--  PWA SERVICE WORKER REGISTRATION  -->
     <script>
