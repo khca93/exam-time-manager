@@ -1,0 +1,21 @@
+{
+  "name": "Exam Time Manager",
+  "short_name": "ExamTimer",
+  "start_url": "/exam-time-manager/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0b79d0",
+  "description": "Plan and run exam section timers with per-section todos.",
+  "icons": [
+    {
+      "src": "/exam-time-manager/Logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/exam-time-manager/Logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
