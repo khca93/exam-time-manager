@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Time Manager</title>
+    <style>
+        :root {
+            --primary-color: #6C63FF; /* Beautiful Purple */
+            --secondary-color: #F50057; /* Pink/Red for alerts */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: linear-gradient(45deg, #6C63FF, #4834d4); color: white; box-shadow: 0 4px 10px rgba(108, 99, 255, 0.4); }
+        .btn-secondary { background: white; color: var(--primary-color); border: 2px solid var(--primary-color); }
+        .btn-danger { background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; }
+        .btn-success { background: linear-gradient(45deg, #2ed573, #7bed9f); color: white; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        /* Screen Layouts */
+        .screen {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 1. Welcome Screen */
+        #welcome-screen {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        .logo-img { width: 80px; margin-bottom: 20px; }
+        .student-img { width: 200px; margin: 20px auto; display: block; }
+        .motivation {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* 2. Setup Screen */
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+        .live-summary {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 5px solid var(--primary-color);
+        }
+        .live-summary h4 { margin: 0 0 5px 0; color: var(--primary-color); }
+        .section-row {
+            background: #fafafa;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .saved-exam-item {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .saved-exam-item button { width: auto; font-size: 0.8rem; padding: 5px 10px; margin: 0 2px; }
+
+        /* 3. Running Screen */
+        #running-screen {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .timer-display {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .big-timer { font-size: 4rem; font-weight: bold; font-family: monospace; }
+        .small-timer { font-size: 1.5rem; color: #bdc3c7; margin-top: 10px; }
+        .section-info { font-size: 1.5rem; color: #f1c40f; margin-bottom: 5px; }
+        .pulse { animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* 4. Todo Screen */
+        .todo-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .todo-text { flex-grow: 1; margin-right: 10px; }
+        
+        /* Floating Back Button */
+        .back-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.1);
+            color: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+        }
+        #running-screen .back-btn { display: none; } /* Cannot go back during exam easily */
+    </style>
+</head>
+<body>
+
+    <!-- 1. WELCOME SCREEN -->
+    <div id="welcome-screen" class="screen">
+        <img src="Logo.png" alt="App Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3209/3209265.png'"> <!-- Fallback Image -->
+        
+        <img src="student1.png" alt="Student Happy" class="student-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png'">
+        
+        <h1>Exam Manager</h1>
+        <p class="motivation">"Believe you can and you're halfway there."</p>
+
+        <button class="btn btn-primary" onclick="showScreen('setup-screen')">Exam Timer</button>
+        <button class="btn btn-secondary" onclick="showScreen('todo-screen')">Todo List</button>
+    </div>
+
+    <!-- 2. SETUP SCREEN -->
+    <div id="setup-screen" class="screen hidden">
+        <div class="back-btn" onclick="showScreen('welcome-screen')">←</div>
+        
+        <div class="card" style="text-align: center;">
+            <img src="student2.png" alt="Student Studying" style="width: 120px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3426/3426653.png'">
+            <h2>Create New Exam</h2>
+        </div>
+
+        <div class="card">
+            <label>Exam Name</label>
+            <input type="text" id="examName" placeholder="e.g. Mathematics Final">
+
+            <label>Total Marks</label>
+            <input type="number" id="totalMarks" placeholder="100">
+
+            <label>Total Time (Minutes)</label>
+            <input type="number" id="totalTime" placeholder="180" oninput="updateCalculations()">
+            
+            <label>Checking Time (Min - Default 10)</label>
+            <input type="number" id="checkingTime" value="10" min="5" oninput="updateCalculations()">
+
+            <hr>
+            <h3>Sections Setup</h3>
+            <label>How many sections? (1-8)</label>
+            <select id="sectionCount" onchange="generateSectionInputs()">
+                <option value="0">Select Count</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+            </select>
+
+            <div id="sections-container"></div>
+
+            <div class="live-summary">
+                <h4>Live Summary</h4>
+                <p>Total Exam Time: <span id="summaryTotal">0</span> min</p>
+                <p>Sections Total: <span id="summarySections">0</span> min</p>
+                <p style="font-weight: bold;">Remaining (Checking): <span id="summaryRemaining">0</span> min</p>
+                <p id="timeError" style="color: red; display: none;">Error: Not enough time for checking!</p>
+            </div>
+
+            <button class="btn btn-success" onclick="saveTemplate()">Save Template</button>
+            <button class="btn btn-primary" onclick="validateAndStart()">Start Exam</button>
+        </div>
+
+        <div class="card">
+            <h3>Saved Templates (Max 10)</h3>
+            <div id="template-list">
+                <!-- Templates loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. RUNNING EXAM SCREEN -->
+    <div id="running-screen" class="screen hidden">
+        <h2 id="runExamName">Maths</h2>
+        <p>Total Marks: <span id="runMarks">100</span></p>
+
+        <div class="timer-display pulse">
+            <div class="section-info" id="runSectionName">Section A</div>
+            <div style="font-size: 1rem; margin-bottom: 5px;">Section Time Left</div>
+            <div class="big-timer" id="runSectionTimer">00:00:00</div>
+            <div style="margin-top: 5px;">Step <span id="runStepInfo">1 of 3</span></div>
+        </div>
+
+        <div style="text-align: center;">
+            <p>Total Exam Time Left</p>
+            <div class="small-timer" id="runTotalTimer">00:00:00</div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <button class="btn btn-secondary" onclick="viewSectionTodo()">View Section Todo</button>
+            <button class="btn btn-danger" onclick="stopExam()">Stop Exam</button>
+        </div>
+    </div>
+
+    <!-- 4. TODO SCREEN -->
+    <div id="todo-screen" class="screen hidden">
+        <div class="back-btn" onclick="showScreen('welcome-screen')">←</div>
+        <h2>General To-Do List</h2>
+        
+        <div class="card">
+            <input type="text" id="newTodoInput" placeholder="Add new task...">
+            <button class="btn btn-primary" onclick="addTodo()">Add Task</button>
+        </div>
+
+        <div id="todo-list-container">
+            <!-- Todos go here -->
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        let templates = JSON.parse(localStorage.getItem('examTemplates')) || [];
+        let todos = JSON.parse(localStorage.getItem('generalTodos')) || [];
+        
+        // Timer Variables
+        let examState = {
+            isRunning: false,
+            interval: null,
+            totalSeconds: 0,
+            sections: [], // {name: 'A', seconds: 3600}
+            currentSectionIndex: 0,
+            currentSectionSeconds: 0
+        };
+
+        // --- NAVIGATION ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            if(screenId === 'setup-screen') renderTemplates();
+            if(screenId === 'todo-screen') renderTodos();
+        }
+
+        // --- EXAM SETUP LOGIC ---
+        function generateSectionInputs() {
+            const count = document.getElementById('sectionCount').value;
+            const container = document.getElementById('sections-container');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement('div');
+                div.className = 'section-row';
+                div.innerHTML = `
+                    <strong>Section ${i}</strong>
+                    <input type="text" placeholder="Section Name (e.g. MCQ)" class="sec-name-in">
+                    <input type="number" placeholder="Time (Minutes)" class="sec-time-in" oninput="updateCalculations()">
+                `;
+                container.appendChild(div);
+            }
+            updateCalculations();
+        }
+
+        function updateCalculations() {
+            const totalTime = parseInt(document.getElementById('totalTime').value) || 0;
+            const checkingTime = parseInt(document.getElementById('checkingTime').value) || 10;
+            
+            let sectionsTotal = 0;
+            document.querySelectorAll('.sec-time-in').forEach(input => {
+                sectionsTotal += parseInt(input.value) || 0;
+            });
+
+            const remaining = totalTime - sectionsTotal;
+
+            document.getElementById('summaryTotal').innerText = totalTime;
+            document.getElementById('summarySections').innerText = sectionsTotal;
+            document.getElementById('summaryRemaining').innerText = remaining;
+
+            const errorEl = document.getElementById('timeError');
+            if (remaining < checkingTime) {
+                errorEl.style.display = 'block';
+                errorEl.innerText = `Error: Remaining time (${remaining}m) is less than Checking Time (${checkingTime}m)`;
+                return false;
+            } else {
+                errorEl.style.display = 'none';
+                return true;
+            }
+        }
+
+        function saveTemplate() {
+            const name = document.getElementById('examName').value;
+            if(!name) return alert("Please enter exam name");
+            
+            if(templates.length >= 10) return alert("Memory full (10 templates). Delete some first.");
+
+            const template = {
+                id: Date.now(),
+                name: name,
+                marks: document.getElementById('totalMarks').value,
+                totalTime: document.getElementById('totalTime').value,
+                checkingTime: document.getElementById('checkingTime').value,
+                sectionCount: document.getElementById('sectionCount').value,
+                sections: []
+            };
+
+            const secNames = document.querySelectorAll('.sec-name-in');
+            const secTimes = document.querySelectorAll('.sec-time-in');
+            
+            for(let i=0; i<secNames.length; i++){
+                template.sections.push({
+                    name: secNames[i].value,
+                    time: secTimes[i].value
+                });
+            }
+
+            templates.push(template);
+            localStorage.setItem('examTemplates', JSON.stringify(templates));
+            renderTemplates();
+            alert("Template Saved!");
+        }
+
+        function renderTemplates() {
+            const list = document.getElementById('template-list');
+            list.innerHTML = '';
+            templates.forEach((t, index) => {
+                const div = document.createElement('div');
+                div.className = 'saved-exam-item';
+                div.innerHTML = `
+                    <div><strong>${t.name}</strong> (${t.totalTime} min)</div>
+                    <div>
+                        <button class="btn-success" onclick="loadTemplate(${index})">Load</button>
+                        <button class="btn-danger" onclick="deleteTemplate(${index})">X</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function deleteTemplate(index) {
+            if(confirm("Delete this template?")) {
+                templates.splice(index, 1);
+                localStorage.setItem('examTemplates', JSON.stringify(templates));
+                renderTemplates();
+            }
+        }
+
+        function loadTemplate(index) {
+            const t = templates[index];
+            document.getElementById('examName').value = t.name;
+            document.getElementById('totalMarks').value = t.marks;
+            document.getElementById('totalTime').value = t.totalTime;
+            document.getElementById('checkingTime').value = t.checkingTime || 10;
+            document.getElementById('sectionCount').value = t.sectionCount;
+            
+            // Generate inputs first
+            const container = document.getElementById('sections-container');
+            container.innerHTML = '';
+            t.sections.forEach((sec, i) => {
+                const div = document.createElement('div');
+                div.className = 'section-row';
+                div.innerHTML = `
+                    <strong>Section ${i+1}</strong>
+                    <input type="text" value="${sec.name}" class="sec-name-in">
+                    <input type="number" value="${sec.time}" class="sec-time-in" oninput="updateCalculations()">
+                `;
+                container.appendChild(div);
+            });
+            updateCalculations();
+        }
+
+        // --- EXAM RUNNING LOGIC ---
+        function validateAndStart() {
+            if (!updateCalculations()) return alert("Time configuration invalid. Check live summary.");
+            const name = document.getElementById('examName').value;
+            if(!name) return alert("Enter Exam Name");
+
+            // Setup Data
+            examState.sections = [];
+            const names = document.querySelectorAll('.sec-name-in');
+            const times = document.querySelectorAll('.sec-time-in');
+            
+            names.forEach((n, i) => {
+                examState.sections.push({
+                    name: n.value || `Section ${i+1}`,
+                    seconds: (parseInt(times[i].value) || 0) * 60
+                });
+            });
+
+            const totalMins = parseInt(document.getElementById('totalTime').value);
+            examState.totalSeconds = totalMins * 60;
+            examState.currentSectionIndex = 0;
+            examState.currentSectionSeconds = examState.sections[0].seconds;
+            examState.isRunning = true;
+
+            // Update UI
+            document.getElementById('runExamName').innerText = name;
+            document.getElementById('runMarks').innerText = document.getElementById('totalMarks').value;
+            
+            showScreen('running-screen');
+            updateTimerDisplay();
+            startTimerLoop();
+        }
+
+        function startTimerLoop() {
+            clearInterval(examState.interval);
+            examState.interval = setInterval(tick, 1000);
+        }
+
+        function tick() {
+            if(!examState.isRunning) return;
+
+            // Decrement
+            examState.totalSeconds--;
+            examState.currentSectionSeconds--;
+
+            // Check Section End
+            if(examState.currentSectionSeconds <= 0) {
+                handleSectionEnd();
+            }
+
+            // Check Exam End
+            if(examState.totalSeconds <= 0) {
+                stopExam();
+                alert("Time is Up! Exam Finished.");
+                speak("Exam Finished. Time is up.");
+                return;
+            }
+
+            updateTimerDisplay();
+        }
+
+        function handleSectionEnd() {
+            const justFinished = examState.sections[examState.currentSectionIndex].name;
+            examState.currentSectionIndex++;
+
+            if(examState.currentSectionIndex < examState.sections.length) {
+                // Next section
+                const nextSection = examState.sections[examState.currentSectionIndex].name;
+                examState.currentSectionSeconds = examState.sections[examState.currentSectionIndex].seconds;
+                
+                // Alert Sound/Speech
+                speak(`Section ${justFinished} Completed. Start ${nextSection}`);
+                alert(`Section "${justFinished}" Completed! \nStart "${nextSection}" now.`);
+            } else {
+                // All sections done, now in Checking time
+                speak("All sections completed. Checking time started.");
+                // Keep running total timer, but section timer indicates checking
+                examState.currentSectionSeconds = examState.totalSeconds; // Remainder is checking
+                document.getElementById('runSectionName').innerText = "Final Checking";
+            }
+        }
+
+        function updateTimerDisplay() {
+            // Format HH:MM:SS
+            const fmt = (s) => new Date(s * 1000).toISOString().substr(11, 8);
+            
+            document.getElementById('runTotalTimer').innerText = fmt(examState.totalSeconds);
+            document.getElementById('runSectionTimer').innerText = fmt(examState.currentSectionSeconds);
+
+            if(examState.currentSectionIndex < examState.sections.length) {
+                document.getElementById('runSectionName').innerText = examState.sections[examState.currentSectionIndex].name;
+                document.getElementById('runStepInfo').innerText = `${examState.currentSectionIndex + 1} of ${examState.sections.length}`;
+            } else {
+                document.getElementById('runSectionName').innerText = "FINAL CHECKING";
+                document.getElementById('runStepInfo').innerText = "Review";
+            }
+        }
+
+        function stopExam() {
+            clearInterval(examState.interval);
+            examState.isRunning = false;
+            showScreen('setup-screen');
+        }
+
+        function viewSectionTodo() {
+            // Simple alert for now, or could open a modal.
+            // As per requirement "View Section Todo", lets suggest generalized todos or specific notes
+            const note = prompt("Enter a quick note/todo for this section:", "");
+            if(note) {
+               // save to general todos with tag
+               todos.push({text: `[Exam Note] ${note}`, id: Date.now()});
+               localStorage.setItem('generalTodos', JSON.stringify(todos));
+               alert("Saved to Todo List");
+            }
+        }
+
+        // --- AUDIO / TTS ---
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // --- TODO LOGIC ---
+        function renderTodos() {
+            const container = document.getElementById('todo-list-container');
+            container.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const div = document.createElement('div');
+                div.className = 'todo-item';
+                div.innerHTML = `
+                    <span class="todo-text">${todo.text}</span>
+                    <button class="btn-danger" style="width:auto; padding:5px 10px; margin:0;" onclick="removeTodo(${index})">Del</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addTodo() {
+            const input = document.getElementById('newTodoInput');
+            if(input.value.trim() === '') return;
+            todos.push({ text: input.value, id: Date.now() });
+            localStorage.setItem('generalTodos', JSON.stringify(todos));
+            input.value = '';
+            renderTodos();
+        }
+
+        function removeTodo(index) {
+            todos.splice(index, 1);
+            localStorage.setItem('generalTodos', JSON.stringify(todos));
+            renderTodos();
+        }
+
+    </script>
+</body>
+</html>
