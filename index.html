@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/exam-time-manager/manifest.json">
+    <meta name="theme-color" content="#0b79d0">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Time Manager</title>
@@ -595,5 +599,13 @@
         }
 
     </script>
+	<!--  PWA SERVICE WORKER REGISTRATION  -->
+    <script>
+  	if ('serviceWorker' in navigator) {
+    	   navigator.serviceWorker.register('/exam-time-manager/service-worker.js')
+      	   .then(reg => console.log('SW registered', reg.scope))
+      	   .catch(err => console.log('SW registration failed', err));
+               }
+</script>
 </body>
 </html>
