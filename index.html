@@ -72,7 +72,7 @@
             width: 100%;
         }
 
-        /* 1. Welcome Screen */
+        /* 1. Welcome Screen Images Updated Here */
         #welcome-screen {
             text-align: center;
             display: flex;
@@ -82,8 +82,24 @@
             height: 100%;
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
         }
-        .logo-img { width: 80px; margin-bottom: 20px; }
-        .student-img { width: 200px; margin: 20px auto; display: block; }
+        
+        /* Updated Logo Size: 192px */
+        .logo-img { 
+            width: 192px; 
+            height: auto; 
+            max-width: 100%; /* Keeps it mobile friendly */
+            margin-bottom: 20px; 
+        }
+        
+        /* Updated Student Image Size: 512px */
+        .student-img { 
+            width: 512px; 
+            height: auto; 
+            max-width: 100%; /* Ensures it fits on mobile screens */
+            margin: 20px auto; 
+            display: block; 
+        }
+
         .motivation {
             font-style: italic;
             color: #555;
@@ -180,15 +196,17 @@
             cursor: pointer;
             z-index: 100;
         }
-        #running-screen .back-btn { display: none; } /* Cannot go back during exam easily */
+        #running-screen .back-btn { display: none; } 
     </style>
 </head>
 <body>
 
     <!-- 1. WELCOME SCREEN -->
     <div id="welcome-screen" class="screen">
-        <img src="Logo.png" alt="App Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3209/3209265.png'"> <!-- Fallback Image -->
+        <!-- Logo Image with updated size -->
+        <img src="Logo.png" alt="App Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3209/3209265.png'"> 
         
+        <!-- Student1 Image with updated size -->
         <img src="student1.png" alt="Student Happy" class="student-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png'">
         
         <h1>Exam Manager</h1>
@@ -305,7 +323,7 @@
             isRunning: false,
             interval: null,
             totalSeconds: 0,
-            sections: [], // {name: 'A', seconds: 3600}
+            sections: [], 
             currentSectionIndex: 0,
             currentSectionSeconds: 0
         };
@@ -520,14 +538,12 @@
             } else {
                 // All sections done, now in Checking time
                 speak("All sections completed. Checking time started.");
-                // Keep running total timer, but section timer indicates checking
-                examState.currentSectionSeconds = examState.totalSeconds; // Remainder is checking
+                examState.currentSectionSeconds = examState.totalSeconds; 
                 document.getElementById('runSectionName').innerText = "Final Checking";
             }
         }
 
         function updateTimerDisplay() {
-            // Format HH:MM:SS
             const fmt = (s) => new Date(s * 1000).toISOString().substr(11, 8);
             
             document.getElementById('runTotalTimer').innerText = fmt(examState.totalSeconds);
@@ -549,18 +565,14 @@
         }
 
         function viewSectionTodo() {
-            // Simple alert for now, or could open a modal.
-            // As per requirement "View Section Todo", lets suggest generalized todos or specific notes
             const note = prompt("Enter a quick note/todo for this section:", "");
             if(note) {
-               // save to general todos with tag
                todos.push({text: `[Exam Note] ${note}`, id: Date.now()});
                localStorage.setItem('generalTodos', JSON.stringify(todos));
                alert("Saved to Todo List");
             }
         }
 
-        // --- AUDIO / TTS ---
         function speak(text) {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
