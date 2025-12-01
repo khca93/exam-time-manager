@@ -1,20 +1,27 @@
 {
   "name": "Exam Time Manager",
   "short_name": "ExamTimer",
-  "start_url": "index.html",
+  "description": "Plan and run exam section timers with per-section todos (offline-capable).",
+  "start_url": "/exam-time-manager/",
+  "scope": "/exam-time-manager/",
   "display": "standalone",
-  "background_color": "#f4f7f6",
+  "background_color": "#f4f7fb",
   "theme_color": "#6C63FF",
   "icons": [
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/exam-time-manager/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
     },
     {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/exam-time-manager/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/exam-time-manager/Logo.png",
+      "type": "image/png",
+      "sizes": "any"
     }
   ]
 }
